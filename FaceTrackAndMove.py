@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 
 
 import cv2
@@ -15,8 +14,8 @@ from time import sleep
 pan = Servo(pin=17) # pan_servo_pin (BCM)
 tilt = Servo(pin=27) 
 freq = 50 # 50 Hz pwm
-error = 35
-
+error = 40
+errorMax = 90
 # Set initial Motor position
 panAngle =10
 tiltAngle =-50
@@ -38,7 +37,7 @@ height=0.5
 weight=2
 myColor=(255,255,255)
 
-faceCascade=cv2.CascadeClassifier('./haar/haarcascade_frontalface_default.xml')
+faceCascade=cv2.CascadeClassifier('/home/rohanpi/Documents/Face_Tracking_Phone_Stand/haar/haarcascade_frontalface_default.xml')
 Xdir = 0
 Ydir = 0
 sentryStepSizeX = 2
@@ -60,7 +59,7 @@ def SlowMoveTilt(startPos,endPos):
     return(startPos)
     
 
-
+print("Running!")
 while True:
     tStart=time.time()
     frame= picam2.capture_array()
@@ -69,8 +68,7 @@ while True:
     faces=faceCascade.detectMultiScale(frame,1.3,5,0,(50,50)) # (window,scaleFactor,minNeighbors,Flags,(minSize,maxSize))
     #print(sentryElapsed)
     #cv2.putText(frame,str(int(fps))+' FPS',pos,font,height,myColor,weight)
-  
-    """ ***Uncomment to use Sentry Mode***
+    """
     if len(faces) != 0:
         sentryTimerStart = tStart
         
@@ -126,26 +124,27 @@ while True:
         Xerror=(x+w/2)-dispW/2
         Yerror=(y+h/2)-dispH/2
         
-        panAngle = panAngle-Xerror/25
+        panAngle = panAngle-Xerror/30
         if panAngle<-90:
             panAngle=-90
         if panAngle>90:
             panAngle=90
         print(str(panAngle)+' pan   '+str(tiltAngle)+' tilt   ' + str(fps) + ' fps')
-        if abs(Xerror)>error:
+        if ((abs(Xerror)>error) and (abs(Xerror) < errorMax)):
             pan.set_angle(panAngle)
         
-        tiltAngle = tiltAngle-Yerror/75
+        tiltAngle = tiltAngle-Yerror/80
         if tiltAngle<-70:
             tiltAngle=-70
         if tiltAngle>0:
             tiltAngle=0
-        if abs(Yerror)>error:
+        if ((abs(Yerror)>error) and (abs(Yerror) < errorMax)):
             tilt.set_angle(tiltAngle)
+        
     
     
     #cv2.imshow('Camera',frame)
-    
+    #print(panAngle)
     if cv2.waitKey(1)==ord('q'):
         break
     tEnd=time.time()
